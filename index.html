@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sound Wave Generator</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    input {
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <label for="intensity">Intensity:</label>
+  <input type="range" id="intensity" min="0" max="100" step="1" value="0">
+
+  <label for="pulseFeel">Pulse Feel:</label>
+  <input type="range" id="pulseFeel" min="200" max="6000" step="10" value="0">
+
+  <button id="startStopButton">Start</button>
+
+  <script>
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let oscillator;
+    let gainNode;
+
+    function setupAudioNodes() {
+      oscillator = audioContext.createOscillator();
+      oscillator.type = 'sine';
+
+      gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(document.getElementById('intensity').value / 100, audioContext.currentTime);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.setValueAtTime(document.getElementById('pulseFeel').value, audioContext.currentTime);
+
+      oscillator.start();
+    }
+
+    function updateIntensity() {
+      const intensity = document.getElementById('intensity').value / 100;
+      if (gainNode) {
+        gainNode.gain.setValueAtTime(intensity, audioContext.currentTime);
+      }
+    }
+
+    function updatePulseFeel() {
+      const pulseFeel = document.getElementById('pulseFeel').value;
+      if (oscillator) {
+        oscillator.frequency.setValueAtTime(pulseFeel, audioContext.currentTime);
+      }
+    }
+
+    function toggleSound() {
+      const button = document.getElementById('startStopButton');
+
+      if (oscillator) {
+        oscillator.stop();
+        oscillator.disconnect();
+        gainNode.disconnect();
+        oscillator = null;
+        gainNode = null;
+        button.innerText = 'Start';
+      } else {
+        setupAudioNodes();
+        button.innerText = 'Stop';
+      }
+    }
+
+    document.getElementById('intensity').addEventListener('input', updateIntensity);
+    document.getElementById('pulseFeel').addEventListener('input', updatePulseFeel);
+    document.getElementById('startStopButton').addEventListener('click', toggleSound);
+  </script>
+</body>
+</html>
+
